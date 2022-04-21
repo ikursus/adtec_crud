@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "600713702593",
+    "project_id": "adtec-crud",
+    "storage_bucket": "adtec-crud.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:600713702593:android:4bcc41408da194f8847840",
+        "android_client_info": {
+          "package_name": "com.example.adtec_crud"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "600713702593-49njo8tjefu0l8lmeug3rlibmd8668sa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmApH5V10NVAP6l4f7Q0mYlmWZDh50yE4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "600713702593-49njo8tjefu0l8lmeug3rlibmd8668sa.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
