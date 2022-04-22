@@ -6,13 +6,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-  options: const FirebaseOptions(
+    // Database Firebase Connection Info
+    options: const FirebaseOptions(
         appId: '1:600713702593:android:4bcc41408da194f8847840',
         apiKey: 'AIzaSyDmApH5V10NVAP6l4f7Q0mYlmWZDh50yE4',
         messagingSenderId: '600713702593',
         projectId: 'adtec-crud',
         storageBucket: 'adtec-crud.appspot.com'),
-  ););
+  );
   runApp(const MyApp());
 }
 
@@ -42,7 +43,7 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 
-  final CollectionReference _productss =
+  final CollectionReference _products =
       FirebaseFirestore.instance.collection('products');
 
   // This function is triggered when the floatting button or one of the edit buttons is pressed
@@ -95,12 +96,12 @@ class _HomePageState extends State<HomePage> {
                     if (name != null && price != null) {
                       if (action == 'create') {
                         // Persist a new product to Firestore
-                        await _productss.add({"name": name, "price": price});
+                        await _products.add({"name": name, "price": price});
                       }
 
                       if (action == 'update') {
                         // Update the product
-                        await _productss
+                        await _products
                             .doc(documentSnapshot!.id)
                             .update({"name": name, "price": price});
                       }
@@ -122,11 +123,11 @@ class _HomePageState extends State<HomePage> {
 
   // Deleteing a product by id
   Future<void> _deleteProduct(String productId) async {
-    await _productss.doc(productId).delete();
+    await _products.doc(productId).delete();
 
     // Show a snackbar
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Produk berjaya dihapuskan!')));
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Produk berjaya dihapuskan!')));
   }
 
   @override
@@ -137,19 +138,21 @@ class _HomePageState extends State<HomePage> {
       ),
       // Using StreamBuilder to display all products from Firestore in real-time
       body: StreamBuilder(
-        stream: _productss.snapshots(),
+        stream: _products.snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
           if (streamSnapshot.hasData) {
             return ListView.builder(
               itemCount: streamSnapshot.data!.docs.length,
               itemBuilder: (context, index) {
+                // Declare new variable for data access
                 final DocumentSnapshot documentSnapshot =
                     streamSnapshot.data!.docs[index];
                 return Card(
                   margin: const EdgeInsets.all(10),
                   child: ListTile(
                     title: Text(documentSnapshot['name']),
-                    subtitle: Text(documentSnapshot['price'].toString()),
+                    subtitle:
+                        Text('RM ${documentSnapshot['price'].toString()}'),
                     trailing: SizedBox(
                       width: 100,
                       child: Row(
