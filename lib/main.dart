@@ -1,3 +1,4 @@
+// main.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,13 +6,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: const FirebaseOptions(
+  options: const FirebaseOptions(
         appId: '1:600713702593:android:4bcc41408da194f8847840',
         apiKey: 'AIzaSyDmApH5V10NVAP6l4f7Q0mYlmWZDh50yE4',
         messagingSenderId: '600713702593',
         projectId: 'adtec-crud',
         storageBucket: 'adtec-crud.appspot.com'),
-  );
+  ););
   runApp(const MyApp());
 }
 
@@ -21,7 +22,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      // Remove the debug banner
       debugShowCheckedModeBanner: false,
+      title: 'Kindacode.com',
       home: HomePage(),
     );
   }
@@ -35,22 +38,22 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  @override
+  // text fields' controllers
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 
-  final CollectionReference _products =
+  final CollectionReference _productss =
       FirebaseFirestore.instance.collection('products');
 
-  // Function yang digunakan untuk trigger pilihan simpanan data. Adakah nak create atau update
+  // This function is triggered when the floatting button or one of the edit buttons is pressed
+  // Adding a product if no documentSnapshot is passed
+  // If documentSnapshot != null then update an existing product
   Future<void> _createOrUpdate([DocumentSnapshot? documentSnapshot]) async {
     String action = 'create';
-
     if (documentSnapshot != null) {
       action = 'update';
-
       _nameController.text = documentSnapshot['name'];
-      _priceController.text = documentSnapshot['price'];
+      _priceController.text = documentSnapshot['price'].toString();
     }
 
     await showModalBottomSheet(
@@ -58,105 +61,124 @@ class _HomePageState extends State<HomePage> {
         context: context,
         builder: (BuildContext ctx) {
           return Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.only(
+                top: 20,
+                left: 20,
+                right: 20,
+                // prevent the soft keyboard from covering text fields
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TextField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Nama Produk'),
+                  decoration: const InputDecoration(labelText: 'Name'),
                 ),
                 TextField(
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   controller: _priceController,
-                  decoration: const InputDecoration(labelText: 'Harga Produk'),
+                  decoration: const InputDecoration(
+                    labelText: 'Price',
+                  ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(
+                  height: 20,
+                ),
                 ElevatedButton(
+                  child: Text(action == 'create' ? 'Create' : 'Update'),
                   onPressed: () async {
-                    String? name = _nameController.text;
-                    double? price = double.tryParse(_priceController.text);
-
+                    final String? name = _nameController.text;
+                    final double? price =
+                        double.tryParse(_priceController.text);
                     if (name != null && price != null) {
                       if (action == 'create') {
-                        await _products.add({'name': name, 'price': price});
+                        // Persist a new product to Firestore
+                        await _productss.add({"name": name, "price": price});
                       }
 
                       if (action == 'update') {
-                        await _products
+                        // Update the product
+                        await _productss
                             .doc(documentSnapshot!.id)
-                            .update({'name': name, 'price': price});
+                            .update({"name": name, "price": price});
                       }
 
-                      //Setkan field name dan price kosong
+                      // Clear the text fields
                       _nameController.text = '';
                       _priceController.text = '';
 
-                      // Tutup popup/modal selepas selesai simpan data
+                      // Hide the bottom sheet
                       Navigator.of(context).pop();
                     }
                   },
-                  child: Text(action == 'create' ? 'Simpan' : 'Kemaskini'),
-                ),
+                )
               ],
             ),
           );
         });
   }
 
+  // Deleteing a product by id
   Future<void> _deleteProduct(String productId) async {
-    _products.doc(productId).delete();
+    await _productss.doc(productId).delete();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Rekod produk berjaya dihapuskan!')));
+    // Show a snackbar
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('You have successfully deleted a product')));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Senarai Produk'),
+        title: const Text('Kindacode.com'),
       ),
+      // Using StreamBuilder to display all products from Firestore in real-time
       body: StreamBuilder(
-        stream: _products.snapshots(),
-        builder: (BuildContext context,
-            AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+        stream: _productss.snapshots(),
+        builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
           if (streamSnapshot.hasData) {
             return ListView.builder(
-                itemCount: streamSnapshot.data!.docs.length,
-                itemBuilder: (context, index) {
-                  final DocumentSnapshot documentSnapshot =
-                      streamSnapshot.data!.docs[index];
-
-                  return Card(
-                    margin: const EdgeInsets.all(10),
-                    child: ListTile(
-                      title: Text(documentSnapshot['name']),
-                      subtitle: Text(documentSnapshot['price'].toString()),
-                      trailing: SizedBox(
-                        width: 100,
-                        child: Row(
-                          children: [
-                            IconButton(
-                              onPressed: () =>
-                                  _createOrUpdate(documentSnapshot),
+              itemCount: streamSnapshot.data!.docs.length,
+              itemBuilder: (context, index) {
+                final DocumentSnapshot documentSnapshot =
+                    streamSnapshot.data!.docs[index];
+                return Card(
+                  margin: const EdgeInsets.all(10),
+                  child: ListTile(
+                    title: Text(documentSnapshot['name']),
+                    subtitle: Text(documentSnapshot['price'].toString()),
+                    trailing: SizedBox(
+                      width: 100,
+                      child: Row(
+                        children: [
+                          // Press this button to edit a single product
+                          IconButton(
                               icon: const Icon(Icons.edit),
-                            ),
-                            IconButton(
                               onPressed: () =>
-                                  _deleteProduct(documentSnapshot.id),
+                                  _createOrUpdate(documentSnapshot)),
+                          // This icon button is used to delete a single product
+                          IconButton(
                               icon: const Icon(Icons.delete),
-                            ),
-                          ],
-                        ),
+                              onPressed: () =>
+                                  _deleteProduct(documentSnapshot.id)),
+                        ],
                       ),
                     ),
-                  );
-                });
+                  ),
+                );
+              },
+            );
           }
+
           return const Center(
             child: CircularProgressIndicator(),
           );
         },
       ),
+      // Add new product
       floatingActionButton: FloatingActionButton(
         onPressed: () => _createOrUpdate(),
         child: const Icon(Icons.add),
