@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       // Remove the debug banner
       debugShowCheckedModeBanner: false,
-      title: 'Kindacode.com',
+      title: 'Senarai Produk',
       home: HomePage(),
     );
   }
@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> {
                   height: 20,
                 ),
                 ElevatedButton(
-                  child: Text(action == 'create' ? 'Create' : 'Update'),
+                  child: Text(action == 'create' ? 'Simpan' : 'Kemaskini'),
                   onPressed: () async {
                     final String? name = _nameController.text;
                     final double? price =
@@ -126,14 +126,14 @@ class _HomePageState extends State<HomePage> {
 
     // Show a snackbar
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('You have successfully deleted a product')));
+        content: Text('Produk berjaya dihapuskan!')));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kindacode.com'),
+        title: const Text('Senarai Produk'),
       ),
       // Using StreamBuilder to display all products from Firestore in real-time
       body: StreamBuilder(
